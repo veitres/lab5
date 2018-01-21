@@ -2,14 +2,41 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models');
 
-const valid = require('../valid');
+const crypto = require('crypto');
 
+const valid = require('../valid');
+const interserverAuth = require('./../interserver');
+
+var aggregationServAuth = {appId: "aggr", appSecret: "aggrKey", token: null, tokenDate: null};
 module.exports = (app) => {
   app.use('/', router);
 };
 
+router.get('/auth', (req, res, next) => {
+	console.log('***\n\n' + new Date() + ':\n' + 'Got request for auth');
+	
+	let appId = req.query.appId;
+	
+	let appSecret = req.query.appSecret;
+	
+	if (appId != aggregationServAuth.appId || appSecret != aggregationServAuth.appSecret)
+	{
+		res.status(401).send({error: 'appId or appSecret incorrect'});
+	} else {
+		aggregationServAuth.token = crypto.randomBytes(32).toString('base64');
+		aggregationServAuth.tokenDate = Date.now();
+		res.status(200).send({token: aggregationServAuth.token});
+	}
+});
+
 router.get('/specs', (req, res, next) => {
 	console.log('***\n\n' + new Date() + '\n: ' + 'Got request for specialities');
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
 	
 	let page = req.query.page;
 	valid.checkCorrectIntVal(page,
@@ -38,6 +65,12 @@ router.get('/specs', (req, res, next) => {
 
 router.get('/doctors', (req, res, next) => {
 	console.log('***\n\n' + new Date() + '\n: ' + 'Got request for doctors with spec=' + req.query.spec);
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
 	
 	let spec = req.query.spec;
 	valid.checkCorrectIntVal(spec,
@@ -74,6 +107,12 @@ router.get('/doctors', (req, res, next) => {
 
 router.get('/doctors/:id', (req, res, next) => {
 	console.log('***\n\n' + new Date() + '\n: ' + 'Got request for doctor with id=' + req.params.id);
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
 	
 	let id = req.params.id;
 	valid.checkCorrectIntVal(id,
