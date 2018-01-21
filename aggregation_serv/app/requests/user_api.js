@@ -2,7 +2,7 @@ const request = require('request');
 const interserverAuth = require('./../interserver');
 
 const host = 'http://127.0.0.1:3002'
-var appointmentServAuth = {appId: "aggr", appSecret: "aggrKey", token: null};
+var servAuth = {appId: "aggr", appSecret: "aggrKey", token: null};
 
 module.exports = {
     getUserById : function(id, callback) {
@@ -10,16 +10,16 @@ module.exports = {
         
 		console.log('Sending request to users serv: GET ' + url);
 		
-		request.get(url, {method: 'GET', uri: url}, function(errors, response, body){
+		request.get(url, {method: 'GET', uri: url, auth: {bearer: servAuth.token}}, function(errors, response, body){
 			if(errors) {
 				console.log('error from request: ' + errors);
 				if (errors.code == 'ECONNREFUSED')
 					callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
 			} else {
 				if (response.statusCode == 401) {
-					interserverAuth.reAuth(host, url, appointmentServAuth, function () {
-						console.log('Sending token now:'+appointmentServAuth.token+';');
-						request.get(url, {method: 'GET', uri: url, auth: {bearer: appointmentServAuth.token}}, function(errors, response, body){
+					interserverAuth.reAuth(host, url, servAuth, function () {
+						console.log('Sending token now:'+servAuth.token+';');
+						request.get(url, {method: 'GET', uri: url, auth: {bearer: servAuth.token}}, function(errors, response, body){
 							if(errors) {
 								console.log('error from request: ' + errors);
 								if (errors.code == 'ECONNREFUSED')
@@ -46,16 +46,16 @@ module.exports = {
 		
 		console.log('Sending request to users serv: GET ' + url);
 		
-		request.get(url, {method: 'GET', uri: url}, function(errors, response, body){
+		request.get(url, {method: 'GET', uri: url, auth: {bearer: servAuth.token}}, function(errors, response, body){
 			if(errors) {
 				console.log('error from request: ' + errors);
 				if (errors.code == 'ECONNREFUSED')
 					callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
 			} else {
 				if (response.statusCode == 401) {
-					interserverAuth.reAuth(host, url, appointmentServAuth, function () {
-						console.log('Sending token now:'+appointmentServAuth.token+';');
-						request.get(url, {method: 'GET', uri: url, auth: {bearer: appointmentServAuth.token}}, function(errors, response, body){
+					interserverAuth.reAuth(host, url, servAuth, function () {
+						console.log('Sending token now:'+servAuth.token+';');
+						request.get(url, {method: 'GET', uri: url, auth: {bearer: servAuth.token}}, function(errors, response, body){
 							if(errors) {
 								console.log('error from request: ' + errors);
 								if (errors.code == 'ECONNREFUSED')
@@ -82,16 +82,16 @@ module.exports = {
 		
 		console.log('Sending request to users serv: PATCH ' + url);
 	
-		request.patch(url, {method: 'PATCH', uri: url}, function(errors, response, body){
+		request.patch(url, {method: 'PATCH', uri: url, auth: {bearer: servAuth.token}}, function(errors, response, body){
 			if(errors) {
 				console.log('error from request: ' + errors);
 				if (errors.code == 'ECONNREFUSED')
 					callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
 			} else {
 				if (response.statusCode == 401) {
-					interserverAuth.reAuth(host, url, appointmentServAuth, function () {
-						console.log('Sending token now:'+appointmentServAuth.token+';');
-						request.patch(url, {method: 'PATCH', uri: url, auth: {bearer: appointmentServAuth.token}}, function(errors, response, body){
+					interserverAuth.reAuth(host, url, servAuth, function () {
+						console.log('Sending token now:'+servAuth.token+';');
+						request.patch(url, {method: 'PATCH', uri: url, auth: {bearer: servAuth.token}}, function(errors, response, body){
 							if(errors) {
 								console.log('error from request: ' + errors);
 								if (errors.code == 'ECONNREFUSED')
@@ -118,16 +118,16 @@ module.exports = {
 		
 		console.log('Sending request to users serv: DELETE ' + url);
 	
-		request.delete(url, {method: 'DELETE', uri: url}, function(errors, response, body){
+		request.delete(url, {method: 'DELETE', uri: url, auth: {bearer: servAuth.token}}, function(errors, response, body){
 			if(errors) {
 				console.log('error from request: ' + errors);
 				if (errors.code == 'ECONNREFUSED')
 					callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
 			} else {
 				if (response.statusCode == 401) {
-					interserverAuth.reAuth(host, url, appointmentServAuth, function () {
-						console.log('Sending token now:'+appointmentServAuth.token+';');
-						request.delete(url, {method: 'DELETE', uri: url, auth: {bearer: appointmentServAuth.token}}, function(errors, response, body){
+					interserverAuth.reAuth(host, url, servAuth, function () {
+						console.log('Sending token now:'+servAuth.token+';');
+						request.delete(url, {method: 'DELETE', uri: url, auth: {bearer: servAuth.token}}, function(errors, response, body){
 							if(errors) {
 								console.log('error from request: ' + errors);
 								if (errors.code == 'ECONNREFUSED')
