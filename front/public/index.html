@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Запись на прием</title>
+        <meta charset="utf8" />
+        <link rel="stylesheet" type="text/css" href="css/style.css" />
+    </head>
+    <body>
+        <header class="header">
+            <div class="header__logo">
+                <span class="logo">CLINIC</span>
+            </div>
+            <nav class="header__nav">
+                <ul class="nav nav_right nav_nologin">
+                    <li class="nav__item nav__item_hor"><a href="login">Вход</a></li>
+                    <li class="nav__item nav__item_hor"><a href="spec">Наши специалисты</a></li>
+                </ul>
+                <ul class="nav nav_right nav_login">
+                    <li class="nav__item nav__item_hor"><a href="lk">Личный кабинет</a></li>
+                    <li class="nav__item nav__item_hor"><a href="nv">Записаться на прием</a></li>
+                    <li class="nav__item nav__item_hor"><a href="spec">Наши специалисты</a></li>
+					<li class="nav__item nav__item_hor"><a href="logout">Выйти</a></li>
+                </ul>
+            </nav>
+        </header>
+        <div class="error"></div>
+        <div class="content">
+            <div class="content__page content__page_login">
+                <div class="block block_login">
+                    <div class="block__header">
+                        Вход в личный кабинет
+                    </div>
+                    <div class="block__content">
+                        <form class="login" id="login_form">
+                            <input class="login__input" type="text" placeholder="User login" />
+                            <input class="login__input" type="password" placeholder="User password" />
+                            <button class="btn">Войти</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="content__page content__page_spec">
+                <!-- <ul class="list">
+                    <li class="list__item">
+                        Терапевт
+                        <ul class="list_2">
+                            <li class="list__item">Барабулька</li>
+                            <li class="list__item">Попутка</li>
+                        </ul>
+                    </li>
+                    <li class="list__item">
+                        Терапевт
+                        <ul class="list_2">
+                            <li class="list__item">Барабулька</li>
+                            <li class="list__item">Попутка</li>
+                        </ul>
+                    </li>
+                    <li class="list__item">
+                        Терапевт
+                        <ul class="list_2">
+                            <li class="list__item">Барабулька</li>
+                            <li class="list__item">Попутка</li>
+                        </ul>
+                    </li>
+                </ul> -->
+            </div>
+            <div class="content__page content__page_lk">
+                <span class="name"></span>
+                <div class="appointments">
+                    Вы записаны на следующие приемы:
+                    <div class="appointments__content">
+                        <!-- <ul class="app_list">
+                            <li class="app_list__item">
+                                <span class="app_text">2018-01-17 13:50</span>
+                                <span class="app_text">Барабулька Александр Вадимович</span>
+                                <span class="app_text">Травматолог</span>
+                                <span class="app_delete"><a href="">Отменить</a></span>
+                            </li>
+                        </ul>
+                        <ul class="app_list">
+                            <li class="app_list__item">
+                                <span class="app_text">2018-01-17 13:50</span>
+                                <span class="app_text">Барабулька Александр Вадимович</span>
+                                <span class="app_text">Травматолог</span>
+                                <span class="app_delete"><a href="">Отменить</a></span>
+                            </li>
+                        </ul> -->
+                    </div>
+                </div>
+            </div>
+            <div class="content__page content__page_nv">
+                <div class="nv">
+                    Записаться на прием
+                    <div class="nv__content">
+                        <!-- <select id="sel_spec">
+                            <option value="-1">Выберите специализацию</option>
+                            <option value="1">1</option>
+                            <option value="21">Terapevt</option>
+                            <option value="3">3</option>
+                        </select>
+                        <select id="sel_spec">
+                            <option value="-1">Выберите доктора</option>
+                            <option value="1">1</option>
+                            <option value="21">Terapevt</option>
+                            <option value="3">3</option>
+                        </select>
+                        <select id="sel_spec">
+                            <option value="-1">Выберите дату</option>
+                            <option value="1">1</option>
+                            <option value="21">Terapevt</option>
+                            <option value="3">3</option>
+                        </select>
+                        <button class="btn">Записаться</button> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="js/user.js"></script>
+        <script src="js/api.js"></script>
+        <script src="js/router.js"></script>
+    </body>
+</html>
