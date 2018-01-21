@@ -2,11 +2,32 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models');
 
-const valid = require('../valid');
+const crypto = require('crypto');
 
+const valid = require('../valid');
+const interserverAuth = require('./../interserver');
+
+var aggregationServAuth = {appId: "aggr", appSecret: "aggrKey", token: null, tokenDate: null};
 module.exports = (app) => {
   app.use('/', router);
 };
+
+router.get('/auth', (req, res, next) => {
+	console.log('***\n\n' + new Date() + ':\n' + 'Got request for auth');
+	
+	let appId = req.query.appId;
+	
+	let appSecret = req.query.appSecret;
+	
+	if (appId != aggregationServAuth.appId || appSecret != aggregationServAuth.appSecret)
+	{
+		res.status(401).send({error: 'appId or appSecret incorrect'});
+	} else {
+		aggregationServAuth.token = crypto.randomBytes(32).toString('base64');
+		aggregationServAuth.tokenDate = Date.now();
+		res.status(200).send({token: aggregationServAuth.token});
+	}
+});
 
 router.get('/status', (req, res, next) => {
 	res.status(200).send({status: 'Running'});
@@ -14,6 +35,12 @@ router.get('/status', (req, res, next) => {
 
 router.get('/appointments', (req, res, next) => {
 	console.log('***\n\n' + new Date() + ':\n' + 'Got request for appointments of docId ' + req.query.docId);
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
 	
 	let docId = req.query.docId;
 	valid.checkCorrectIntVal(docId,
@@ -52,6 +79,12 @@ router.get('/appointments', (req, res, next) => {
 router.get('/appointments/:id', (req, res, next) => {
 	console.log('***\n\n' + new Date() + ':\n' + 'Got request for appointment ' + req.params.id);
 	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
+	
 	let id = req.params.id;
 	valid.checkCorrectIntVal(id,
 		function () {return res.status(400).send({error: "Appointment ID required"});},
@@ -77,6 +110,12 @@ router.get('/appointments/:id', (req, res, next) => {
 
 router.patch('/appointments/:id', (req, res, next) => {
 	console.log('***\n\n' + new Date() + '\n: ' + 'Got request for make appointment ' + req.params.id + ' locked');
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
 	
 	let id = req.params.id;
 	valid.checkCorrectIntVal(id,
@@ -109,6 +148,12 @@ router.patch('/appointments/:id', (req, res, next) => {
 
 router.delete('/appointments/:id', (req, res, next) => {
 	console.log('***\n\n' + new Date() + ':\n' + 'Got request for make appointment ' + req.params.id + ' unlocked');
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
 	
 	let id = req.params.id;
 	valid.checkCorrectIntVal(id,
