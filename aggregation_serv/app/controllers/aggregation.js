@@ -14,7 +14,7 @@ var ampqConn = null;
 const queueCheckInterval = 50000;
 
 module.exports = (app) => {
-  app.use('/api', router);
+  app.use('/', router);
 };
 
 var queue = 'appointments_to_free';
