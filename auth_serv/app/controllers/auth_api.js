@@ -37,8 +37,6 @@ router.post('/authenticate', (req, res, next) => {
 		return res.status(401).send({error: checkErr});
 	}
 	
-	console.dir(req);
-	
 	let login = req.body.login;
 	console.log('login:'+login+';');
 	if (typeof(login) == 'undefined') return res.status(400).send({error: "Login not specified"});

@@ -69,7 +69,14 @@ class Router {
 		login_form.addEventListener('submit', event => {
 			event.preventDefault();
 			const login = document.getElementsByClassName("login__input")[0].value;
-			user.login(login);
+			const pass = document.getElementsByClassName("login__input")[1].value;
+			
+			api.requestData("authenticate", "POST", {login: login, password: pass})
+				.then(function(response) {
+					user.login(response.user, response.token);
+				});
+			
+			
 			document.getElementsByClassName("nav_login")[0].style.display = "block";
 			document.getElementsByClassName("nav_nologin")[0].style.display = "none";
 			const R = _this.handlers.filter(function(urlObj) {
