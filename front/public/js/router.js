@@ -71,18 +71,38 @@ class Router {
 			const login = document.getElementsByClassName("login__input")[0].value;
 			const pass = document.getElementsByClassName("login__input")[1].value;
 			
+			if (login != '') document.getElementsByClassName("login__input")[0].style.backgroundColor = "#ffffff";
+			else document.getElementsByClassName("login__input")[0].style.backgroundColor = "#ffbbbb";
+			
+			if (pass != '') document.getElementsByClassName("login__input")[1].style.backgroundColor = "#ffffff";
+			else document.getElementsByClassName("login__input")[1].style.backgroundColor = "#ffbbbb";
+			
+			
 			api.requestData("authenticate", "POST", {login: login, password: pass})
 				.then(function(response) {
-					user.login(response.user, response.token);
+					if (typeof(response.error) != 'undefined') {
+						console.dir(response);
+						user.logout();
+						if (response.error == 'User with such login not found') {
+							console.log("wrgUser");
+							document.getElementsByClassName("login__input")[0].style.backgroundColor = "#ffbbbb";
+						}
+						
+						if (response.error == 'Wrong password') {
+							console.log("wrgPass");
+							document.getElementsByClassName("login__input")[1].style.backgroundColor = "#ffbbbb";
+						}
+						
+					} else {
+						user.login(response.user, response.token);
+						document.getElementsByClassName("nav_login")[0].style.display = "block";
+						document.getElementsByClassName("nav_nologin")[0].style.display = "none";
+						const R = _this.handlers.filter(function(urlObj) {
+							return (urlObj._url == 'spec');
+						})[0];
+						R.load();
+					}
 				});
-			
-			
-			document.getElementsByClassName("nav_login")[0].style.display = "block";
-			document.getElementsByClassName("nav_nologin")[0].style.display = "none";
-			const R = _this.handlers.filter(function(urlObj) {
-				return (urlObj._url == 'spec');
-			})[0];
-			R.load();
 		});
     }
 

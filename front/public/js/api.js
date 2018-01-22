@@ -22,7 +22,6 @@ class API {
 
         return fetch(url, httpRequest).then(
 			function(response) {
-				console.log(response);
 				return response.json();
 			},
 			function(response) {
