@@ -10,7 +10,8 @@ class API {
             method: httpMethod,
 			headers: {
 				'Content-type': 'application/json',
-				'Access-Control-Request-Method': httpMethod
+				'Access-Control-Request-Method': httpMethod,
+				'Authorization': 'Bearer ' + user.token,
 			},
 			mode: 'cors',
 			body: null

@@ -65,3 +65,35 @@ router.post('/authenticate', (req, res, next) => {
 		}
 	});
 });
+
+router.get('/check/:id', (req, res, next) => {
+	console.log('***\n\n' + new Date() + ':\n' + 'Got request for token check');
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
+	
+	let userId = req.params.id;
+	if (typeof(userId) == 'undefined') return res.status(400).send({error: "userId not specified"});
+	
+	let token = req.query.token;
+	if (typeof(token) == 'undefined') return res.status(400).send({error: "token not specified"});
+	
+	db.UIToken.findToken(token, function (err, dbToken) {
+		if (err) {
+			if (err == 'SequelizeEmptyResultError') {
+				return res.status(401).send({error: "Token not found"});
+			} else {
+				return res.status(500).send({error: "Service unavailable"});
+			}
+		} else {
+			if (dbToken.userId != userId) {
+				return res.status(403).send({error: "Trying affect another user"});
+			} else {
+				return res.status(200).send(dbToken);
+			}
+		}
+	});
+});

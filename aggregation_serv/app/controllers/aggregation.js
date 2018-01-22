@@ -82,6 +82,26 @@ router.get('/users/:id', (req, res, next) => {
 	);
 	if (res.headersSent) return;
 	
+	
+	
+	let authHeader = req.get('authorization');
+	if (typeof (authHeader) == 'undefined') return res.status(401).send({error: "No auth token specified"});
+	if (res.headersSent) return;	
+	
+	let authToken = authHeader.split(' ')[1];
+	console.log('\n-\nAuth token:' + authToken + ';');
+	authReq.check(id, authToken, function (err, responseCode, body) {
+		console.log('\n\nBody:\n'+body+'\n\n');
+		if (err || responseCode != 200) {
+			console.log('AuthFailed');
+			return res.status(responseCode).send(JSON.parse(body));
+		}
+	});
+	if (res.headersSent) return;
+	console.log('AuthSuccsess');
+	
+	
+	
 	userReq.getUserById(id, function(err, responseCode, body){
 		res.status(responseCode).send(JSON.parse(body));
 	});
@@ -110,6 +130,26 @@ router.get('/users/:id/appointments', (req, res, next) => {
 		function () { return res.status(400).send({error: "\'size\' parameter incorrect"}); }
 	);
 	if (res.headersSent) return;
+	
+
+	
+	let authHeader = req.get('authorization');
+	if (typeof (authHeader) == 'undefined') return res.status(401).send({error: "No auth token specified"});
+	if (res.headersSent) return;	
+	
+	let authToken = authHeader.split(' ')[1];
+	console.log('\n-\nAuth token:' + authToken + ';');
+	authReq.check(id, authToken, function (err, responseCode, body) {
+		console.log('\n\nBody:\n'+body+'\n\n');
+		if (err || responseCode != 200) {
+			console.log('AuthFailed');
+			return res.status(responseCode).send(JSON.parse(body));
+		}
+	});
+	if (res.headersSent) return;
+	console.log('AuthSuccsess');
+	
+	
 	
 	userReq.getUserAppointmentsById(id, page, size, function(err, responseCode, body){
 		if (err || responseCode != 200)
@@ -170,6 +210,25 @@ router.patch('/users/:id/appointments', (req, res, next) => {
 	);
 	if (res.headersSent) return;
 	
+	
+	
+	let authHeader = req.get('authorization');
+	if (typeof (authHeader) == 'undefined') return res.status(401).send({error: "No auth token specified"});
+	if (res.headersSent) return;	
+	
+	let authToken = authHeader.split(' ')[1];
+	console.log('\n-\nAuth token:' + authToken + ';');
+	authReq.check(id, authToken, function (err, responseCode, body) {
+		console.log('\n\nBody:\n'+body+'\n\n');
+		if (err || responseCode != 200) {
+			console.log('AuthFailed');
+			return res.status(responseCode).send(JSON.parse(body));
+		}
+	});
+	if (res.headersSent) return;
+	console.log('AuthSuccsess');
+	
+	
 		
 	appointmentReq.setAppointmentLocked(appointmentId, function(err, responseCode, body){
 		if (err || responseCode != 200) 
@@ -207,6 +266,25 @@ router.delete('/users/:id/appointments', (req, res, next) => {
 		function () {return res.status(400).send({error: "appointmentId parameter is incorrect"});}
 	);
 	if (res.headersSent) return;
+	
+	
+	
+	let authHeader = req.get('authorization');
+	if (typeof (authHeader) == 'undefined') return res.status(401).send({error: "No auth token specified"});
+	if (res.headersSent) return;	
+	
+	let authToken = authHeader.split(' ')[1];
+	console.log('\n-\nAuth token:' + authToken + ';');
+	authReq.check(id, authToken, function (err, responseCode, body) {
+		console.log('\n\nBody:\n'+body+'\n\n');
+		if (err || responseCode != 200) {
+			console.log('AuthFailed');
+			return res.status(responseCode).send(JSON.parse(body));
+		}
+	});
+	if (res.headersSent) return;
+	console.log('AuthSuccsess');
+	
 	
 	
 	userReq.deleteUserAppointment(id, appointmentId, function(err, responseCode, body){
