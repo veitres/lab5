@@ -210,9 +210,13 @@ class Router {
         button.addEventListener("click", function() {
             const seldate = document.getElementById("seldate");
             if(selDate.value != -1) {
-                api.requestData("users/ " + user.id + "/appointments?appointmentId=" + selDate.value, "PATCH")
+                api.requestData("users/" + user.id + "/appointments?appointmentId=" + selDate.value, "PATCH")
 				.then(function(response) {
-                    console.log(response);
+					if (typeof (response.error) != 'undefined' && (response.error == 'TokenTTL' || response.error == 'TokenInactive' || response.error == 'TokenNotFound')){
+						console.log('authFailed:'+response.error);
+						return _this.logoutF(param, _this);
+					}
+					
 					const R = _this.handlers.filter(function(urlObj) {
                         return (urlObj._url == "lk");
                     })[0];   
@@ -261,8 +265,12 @@ class Router {
         const _this =router;
         api.requestData("users/" + user.id + "/appointments?appointmentId=" + param[2], "DELETE")
         .then(function(response) {
-            console.log(response, _this)
-            const R = _this.handlers.filter(function(urlObj) {
+			if (typeof (response.error) != 'undefined' && (response.error == 'TokenTTL' || response.error == 'TokenInactive' || response.error == 'TokenNotFound')){
+				console.log('authFailed:'+response.error);
+				return _this.logoutF(param, _this);
+			}
+			
+			const R = _this.handlers.filter(function(urlObj) {
                 return (urlObj._url == "lk");
             })[0];   
             R.load(param,_this);
@@ -270,16 +278,27 @@ class Router {
     }
 
     lkF(param,router) {
+		const _this =router;
         api.requestData("users/" + user.id, "GET")
 		.then(function(response) {
-            const name = document.getElementsByClassName("name")[0];
+            if (typeof (response.error) != 'undefined' && (response.error == 'TokenTTL' || response.error == 'TokenInactive' || response.error == 'TokenNotFound')){
+				console.log('authFailed:'+response.error);
+				return _this.logoutF(param, _this);
+			}
+			
+			const name = document.getElementsByClassName("name")[0];
             name.innerHTML = response.fio;
         });
         
         api.requestData("users/" + user.id + "/appointments?page=0&size=100", "GET")
 		.then(function(response) {
         //    console.log(response);
-            const place = document.getElementsByClassName("appointments__content")[0];
+			if (typeof (response.error) != 'undefined' && (response.error == 'TokenTTL' || response.error == 'TokenInactive' || response.error == 'TokenNotFound')){
+				console.log('authFailed:'+response.error);
+				return _this.logoutF(param, _this);
+			}
+
+		   const place = document.getElementsByClassName("appointments__content")[0];
             place.innerHTML = "";
             response.rows.forEach(function(item, index){
                 let data = document.createElement("ul");

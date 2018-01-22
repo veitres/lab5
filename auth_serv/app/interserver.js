@@ -1,4 +1,4 @@
-const tokenTimeToLive = 15;
+const tokenTimeToLive = 360;
 const request = require('request');
 
 function authAppointmentServ (host, authInfo, callback) {

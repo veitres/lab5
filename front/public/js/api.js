@@ -5,6 +5,7 @@ class API {
     }
 
     requestData(method, httpMethod, params) {
+		console.log('ReqMeth:'+httpMethod);
         const url = this.host + '/' + method;
         const httpRequest = {
             method: httpMethod,
@@ -23,8 +24,10 @@ class API {
 
         return fetch(url, httpRequest).then(
 			function(response) {
-				//if (response.status == 401 || response.status == 403) router.logoutF();
-				return response.json();
+				response = response.json();
+				console.dir(response);
+				console.log(response);
+				return response;
 			},
 			function(response) {
 				document.getElementsByClassName("error")[0].innerHTML = 'Connection issues: ' + response;

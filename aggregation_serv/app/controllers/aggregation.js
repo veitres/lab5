@@ -20,20 +20,20 @@ module.exports = (app) => {
 
 var queue = 'appointments_to_free';
 function addAppointmentIdToQueue(id) {
-  amqp.connect('amqp://localhost', function(err, conn){
-    conn.createChannel(function(err, ch){
+  // amqp.connect('amqp://localhost', function(err, conn){
+    // conn.createChannel(function(err, ch){
 
-	  console.log('Appointment ID: ' + id + ' added to queue [' + queue + ']');
-      ch.assertQueue(queue, {durable : false});
-      ch.sendToQueue(queue, Buffer.from(id));
+	  // console.log('Appointment ID: ' + id + ' added to queue [' + queue + ']');
+      // ch.assertQueue(queue, {durable : false});
+      // ch.sendToQueue(queue, Buffer.from(id));
       
-	  setTimeout(function() {
-		  ch.close(); 
-		  conn.close();
-	  },500);
+	  // setTimeout(function() {
+		  // ch.close(); 
+		  // conn.close();
+	  // },500);
 	  
-    });
-  });
+    // });
+  // });
 }
 
 function receiveAppointmentIdFromQueue(){
@@ -91,20 +91,25 @@ router.get('/users/:id', (req, res, next) => {
 	let authToken = authHeader.split(' ')[1];
 	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
-		body = JSON.parse(body);
+		console.dir(body);
+		//body = JSON.parse(body);
 		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
-			if (!res.headersSent) return res.status(body.errCode).send(body.error);
+			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
+		
+		
+		
+		if (res.headersSent) return;
+		console.log('AuthSuccsess');
+		
+		
+		if (res.headersSent) return;
+		userReq.getUserById(id, function(err, responseCode, body){
+			if (!res.headersSent) return res.status(responseCode).send(JSON.parse(body));
+		});
 	});
-	if (res.headersSent) return;
-	console.log('AuthSuccsess');
 	
-	
-	if (res.headersSent) return;
-	userReq.getUserById(id, function(err, responseCode, body){
-		if (!res.headersSent) return res.status(responseCode).send(JSON.parse(body));
-	});
 });
 
 router.get('/users/:id/appointments', (req, res, next) => {
@@ -140,61 +145,65 @@ router.get('/users/:id/appointments', (req, res, next) => {
 	let authToken = authHeader.split(' ')[1];
 	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
-		body = JSON.parse(body);
+		//body = JSON.parse(body);
 		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
-			if (!res.headersSent) return res.status(body.errCode).send(body.error);
+			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
-	});
-	if (res.headersSent) return;
-	console.log('AuthSuccsess');
-	
-	
-	
-	userReq.getUserAppointmentsById(id, page, size, function(err, responseCode, body){
-		if (err || responseCode != 200)
-			res.status(responseCode).send(JSON.parse(body));
-		else {
-			let result = JSON.parse(body);
-			let counter = 0;
-			
-			// sending result if forEach never started
-			if (result.rows.length == 0) {
-				console.log('No need to send any reqs');
-				if (!res.headersSent) return res.status(200).send(result);
-			}
-			
-			//rendering appointments ids to full info
-			result.rows.forEach(function (item, index) {
-				appointmentReq.getAppointmentById(item.id, function (errors, responseCode, body) {
-					if (errors || responseCode != 200) {
-						// sending result if appointments server not answered
-						console.log('fixing appointment connect error. Counter: ' + (counter+1));
-						if (++counter == result.rows.length && !res.headersSent) return res.status(200).send(result);
-					} else {
-						result.rows[index] = JSON.parse(body);
-						
-						//transforming docId into full doc info
-						docReq.getDocById(result.rows[index].docId, function (error, responseCode, body) {
-							if(error || responseCode != 200) {
-								console.log('Cannot reach doc serv');
-							} else {
-								result.rows[index].doc = JSON.parse(body); // adding new doc field into result by body of request
-								delete result.rows[index].docId;		   // removing used docId form result
-							}
-					
-							// sending result if all necessary requests were send to appointment serv
+		
+		
+		
+		if (res.headersSent) return;
+		console.log('AuthSuccsess');
+		
+		
+		
+		userReq.getUserAppointmentsById(id, page, size, function(err, responseCode, body){
+			if (err || responseCode != 200)
+				res.status(responseCode).send(JSON.parse(body));
+			else {
+				let result = JSON.parse(body);
+				let counter = 0;
+				
+				// sending result if forEach never started
+				if (result.rows.length == 0) {
+					console.log('No need to send any reqs');
+					if (!res.headersSent) return res.status(200).send(result);
+				}
+				
+				//rendering appointments ids to full info
+				result.rows.forEach(function (item, index) {
+					appointmentReq.getAppointmentById(item.id, function (errors, responseCode, body) {
+						if (errors || responseCode != 200) {
+							// sending result if appointments server not answered
+							console.log('fixing appointment connect error. Counter: ' + (counter+1));
 							if (++counter == result.rows.length && !res.headersSent) return res.status(200).send(result);
-						});
-					}
+						} else {
+							result.rows[index] = JSON.parse(body);
+							
+							//transforming docId into full doc info
+							docReq.getDocById(result.rows[index].docId, function (error, responseCode, body) {
+								if(error || responseCode != 200) {
+									console.log('Cannot reach doc serv');
+								} else {
+									result.rows[index].doc = JSON.parse(body); // adding new doc field into result by body of request
+									delete result.rows[index].docId;		   // removing used docId form result
+								}
+						
+								// sending result if all necessary requests were send to appointment serv
+								if (++counter == result.rows.length && !res.headersSent) return res.status(200).send(result);
+							});
+						}
+					});
 				});
-			});
-		}
+			}
+		});
 	});
+	
 });
 
 router.patch('/users/:id/appointments', (req, res, next) => {
-	console.log('***\n\n' + new Date() + '\n: ' + 'asking Appointment serv to lock appointment' + req.query.appointmentId);
+	console.log('***\n\n' + new Date() + '\n: User|' + req.params.id  + '| aqquiers appointment' + req.query.appointmentId);
 	
 	let id = req.params.id;
 	valid.checkCorrectIntVal(id,
@@ -217,36 +226,39 @@ router.patch('/users/:id/appointments', (req, res, next) => {
 	if (res.headersSent) return;	
 	
 	let authToken = authHeader.split(' ')[1];
-	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
-		body = JSON.parse(body);
+		//body = JSON.parse(body);
 		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
-			if (!res.headersSent) return res.status(body.errCode).send(body.error);
+			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
-	});
-	if (res.headersSent) return;
-	console.log('AuthSuccsess');
-	
-	
 		
-	appointmentReq.setAppointmentLocked(appointmentId, function(err, responseCode, body){
-		if (err || responseCode != 200) 
-			res.status(responseCode).send(JSON.parse(body));
-		else {
-			console.log('asking User serv to add appointment' + appointmentId + ' for user ' + id);
+		if (res.headersSent) return;
+		console.log('AuthSuccsess:'+body);
+		console.dir(body);
 			
-			userReq.addUserAppointment(id, appointmentId, function(err, responseCode, body){
-				if (err || responseCode != 200) {
-					console.log('Got ' + responseCode + ' from User server, so asking Appointment serv to revert appointment' + appointmentId);
-					appointmentReq.setAppointmentUnLocked(appointmentId, function(err, responseCode, body){});
-					res.status(responseCode).send(JSON.parse(body));
-				} else {
-					res.status(200).send(JSON.parse(body));
-				}
-			});
-		}
+		appointmentReq.setAppointmentLocked(appointmentId, function(err, responseCode, body){
+			//console.log(responseCode+'operating: '+ err+'|'+body);
+			if (err || responseCode != 200) {
+				console.log('tau');
+				if (!res.headersSent) return res.status(responseCode).send(JSON.parse(body));
+			} else {
+				console.log('cross');
+				console.log('asking User serv to add appointment' + appointmentId + ' for user ' + id);
+				
+				userReq.addUserAppointment(id, appointmentId, function(err, responseCode, body){
+					if (err || responseCode != 200) {
+						console.log('Got ' + responseCode + ' from User server, so asking Appointment serv to revert appointment' + appointmentId);
+						appointmentReq.setAppointmentUnLocked(appointmentId, function(err, responseCode, body){});
+						if (!res.headersSent) return res.status(responseCode).send(JSON.parse(body));
+					} else {
+						if (!res.headersSent) return res.status(200).send(JSON.parse(body));
+					}
+				});
+			}
+		});
 	});
+	
 });
 
 router.delete('/users/:id/appointments', (req, res, next) => {
@@ -276,31 +288,34 @@ router.delete('/users/:id/appointments', (req, res, next) => {
 	let authToken = authHeader.split(' ')[1];
 	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
-		body = JSON.parse(body);
+		//body = JSON.parse(body);
 		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
-			if (!res.headersSent) return res.status(body.errCode).send(body.error);
+			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
+		
+		if (res.headersSent) return;
+		console.log('AuthSuccsess');
+		
+		
+		
+		userReq.deleteUserAppointment(id, appointmentId, function(err, responseCode, body){
+			if (err || responseCode != 200) 
+				res.status(responseCode).send(JSON.parse(body));
+			else {
+				appointmentReq.setAppointmentUnLocked(appointmentId, function(err, responseCode, body){
+					if (err || responseCode != 200) {
+						addAppointmentIdToQueue(appointmentId);
+						res.status(202).send({result: 1});
+					} else {
+						res.status(200).send(JSON.parse(body));
+					}
+				});
+			}
+		});
+		
 	});
-	if (res.headersSent) return;
-	console.log('AuthSuccsess');
 	
-	
-	
-	userReq.deleteUserAppointment(id, appointmentId, function(err, responseCode, body){
-		if (err || responseCode != 200) 
-			res.status(responseCode).send(JSON.parse(body));
-		else {
-			appointmentReq.setAppointmentUnLocked(appointmentId, function(err, responseCode, body){
-				if (err || responseCode != 200) {
-					addAppointmentIdToQueue(appointmentId);
-					res.status(202).send({result: 1});
-				} else {
-					res.status(200).send(JSON.parse(body));
-				}
-			});
-		}
-	});
 });
 
 router.get('/appointments', (req, res, next) => {
