@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
 	},{ timestamps: false }
 	);
 	
-	UIToken.findToken = function (token) {
+	UIToken.findToken = function (token, callback) {
 		this.findOne(
 		{
 			where: { token: token },
@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
 		});
 	}
 	
-	UIToken.CreateToken = function (userId) {
+	UIToken.createToken = function (userId, callback) {
 		this.create({
 			token: crypto.randomBytes(32).toString('base64'),
 			userId: userId,

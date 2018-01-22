@@ -12,11 +12,11 @@ module.exports = (sequelize, DataTypes) => {
 		return crypto.createHmac('sha256', hashSecret).update(password).digest("hex");
 	}
 	
-	Account.findAccountAndCheckPassword = function (login, password) {
+	Account.findAccountAndCheckPassword = function (login, password, callback) {
 		this.findOne(
 		{
 			where: { login: login },
-			attributes: ['id','login'],
+			attributes: ['id','login','password'],
 			rejectOnEmpty: true
 		}
 		).then((user) => {
