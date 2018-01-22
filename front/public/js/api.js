@@ -23,6 +23,7 @@ class API {
 
         return fetch(url, httpRequest).then(
 			function(response) {
+				//if (response.status == 401 || response.status == 403) router.logoutF();
 				return response.json();
 			},
 			function(response) {

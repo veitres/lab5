@@ -91,19 +91,19 @@ router.get('/users/:id', (req, res, next) => {
 	let authToken = authHeader.split(' ')[1];
 	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
-		console.log('\n\nBody:\n'+body+'\n\n');
-		if (err || responseCode != 200) {
+		body = JSON.parse(body);
+		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
-			return res.status(responseCode).send(JSON.parse(body));
+			if (!res.headersSent) return res.status(body.errCode).send(body.error);
 		}
 	});
 	if (res.headersSent) return;
 	console.log('AuthSuccsess');
 	
 	
-	
+	if (res.headersSent) return;
 	userReq.getUserById(id, function(err, responseCode, body){
-		res.status(responseCode).send(JSON.parse(body));
+		if (!res.headersSent) return res.status(responseCode).send(JSON.parse(body));
 	});
 });
 
@@ -140,10 +140,10 @@ router.get('/users/:id/appointments', (req, res, next) => {
 	let authToken = authHeader.split(' ')[1];
 	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
-		console.log('\n\nBody:\n'+body+'\n\n');
-		if (err || responseCode != 200) {
+		body = JSON.parse(body);
+		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
-			return res.status(responseCode).send(JSON.parse(body));
+			if (!res.headersSent) return res.status(body.errCode).send(body.error);
 		}
 	});
 	if (res.headersSent) return;
@@ -161,7 +161,7 @@ router.get('/users/:id/appointments', (req, res, next) => {
 			// sending result if forEach never started
 			if (result.rows.length == 0) {
 				console.log('No need to send any reqs');
-				res.status(200).send(result);
+				if (!res.headersSent) return res.status(200).send(result);
 			}
 			
 			//rendering appointments ids to full info
@@ -170,7 +170,7 @@ router.get('/users/:id/appointments', (req, res, next) => {
 					if (errors || responseCode != 200) {
 						// sending result if appointments server not answered
 						console.log('fixing appointment connect error. Counter: ' + (counter+1));
-						if (++counter == result.rows.length) res.status(200).send(result);
+						if (++counter == result.rows.length && !res.headersSent) return res.status(200).send(result);
 					} else {
 						result.rows[index] = JSON.parse(body);
 						
@@ -184,7 +184,7 @@ router.get('/users/:id/appointments', (req, res, next) => {
 							}
 					
 							// sending result if all necessary requests were send to appointment serv
-							if (++counter == result.rows.length) res.status(200).send(result);
+							if (++counter == result.rows.length && !res.headersSent) return res.status(200).send(result);
 						});
 					}
 				});
@@ -219,10 +219,10 @@ router.patch('/users/:id/appointments', (req, res, next) => {
 	let authToken = authHeader.split(' ')[1];
 	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
-		console.log('\n\nBody:\n'+body+'\n\n');
-		if (err || responseCode != 200) {
+		body = JSON.parse(body);
+		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
-			return res.status(responseCode).send(JSON.parse(body));
+			if (!res.headersSent) return res.status(body.errCode).send(body.error);
 		}
 	});
 	if (res.headersSent) return;
@@ -276,10 +276,10 @@ router.delete('/users/:id/appointments', (req, res, next) => {
 	let authToken = authHeader.split(' ')[1];
 	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
-		console.log('\n\nBody:\n'+body+'\n\n');
-		if (err || responseCode != 200) {
+		body = JSON.parse(body);
+		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
-			return res.status(responseCode).send(JSON.parse(body));
+			if (!res.headersSent) return res.status(body.errCode).send(body.error);
 		}
 	});
 	if (res.headersSent) return;

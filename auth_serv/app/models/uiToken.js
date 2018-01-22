@@ -24,6 +24,17 @@ module.exports = (sequelize, DataTypes) => {
 		});
 	}
 	
+	UIToken.updateLastUsed = function (token, callback) {
+		this.update(
+			{'lastUsed': Date.now()},
+			{'where': {'token': token}}
+		).then((result) => {
+			callback(null,result);
+		}).catch(function (err) {
+			callback(err,null);
+		});
+	}
+	
 	UIToken.createToken = function (userId, callback) {
 		this.create({
 			token: crypto.randomBytes(32).toString('base64'),

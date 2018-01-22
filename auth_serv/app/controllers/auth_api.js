@@ -7,6 +7,11 @@ const crypto = require('crypto');
 const interserverAuth = require('./../interserver');
 
 var aggregationServAuth = {appId: "aggr", appSecret: "aggrKey", token: null, tokenDate: null};
+
+const tokenLiveTime = 86400; // 24 hours
+const inactiveTokenLiveTime = 60; // 30 min
+
+
 module.exports = (app) => {
   app.use('/', router);
 };
@@ -76,23 +81,30 @@ router.get('/check/:id', (req, res, next) => {
 	}
 	
 	let userId = req.params.id;
-	if (typeof(userId) == 'undefined') return res.status(400).send({error: "userId not specified"});
+	if (typeof(userId) == 'undefined') return res.status(400).send({error: "userId not specified", errCode:400});
 	
 	let token = req.query.token;
-	if (typeof(token) == 'undefined') return res.status(400).send({error: "token not specified"});
+	if (typeof(token) == 'undefined') return res.status(400).send({error: "token not specified", errCode:400});
 	
 	db.UIToken.findToken(token, function (err, dbToken) {
 		if (err) {
 			if (err == 'SequelizeEmptyResultError') {
-				return res.status(401).send({error: "Token not found"});
+				return res.status(200).send({error: "Token not found", errCode:401});
 			} else {
-				return res.status(500).send({error: "Service unavailable"});
+				console.log("dbErr:"+err);
+				return res.status(500).send({error: "Service unavailable", errCode:500});
 			}
 		} else {
 			if (dbToken.userId != userId) {
-				return res.status(403).send({error: "Trying affect another user"});
+				return res.status(200).send({error: "Trying affect another user", errCode:403});
+			} else if ((Date.now() - dbToken.created)/1000 > tokenLiveTime) {
+				return res.status(200).send({error: 'Token Life Time Expericied', errCode:401});
+			} else if ((Date.now() - dbToken.lastUsed)/1000 > inactiveTokenLiveTime) {
+				return res.status(200).send({error: 'Token Inactive Time Expericied', errCode:401});
 			} else {
-				return res.status(200).send(dbToken);
+				db.UIToken.updateLastUsed(token, function (err, data) {
+					return res.status(200).send(dbToken);
+				});
 			}
 		}
 	});
