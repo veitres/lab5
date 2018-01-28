@@ -42,6 +42,78 @@ module.exports = {
 		});
     },
 	
+	check : function (userId, token, callback) {
+		const url = host+'/check/'+userId;
+		// json: true,
+		console.log('Sending request to auth serv: GET ' + url);
+		request.post(url, {method: 'POST', uri: url, auth: {bearer: servAuth.token}, json: true, body: {token: token}}, function(errors, response, body){
+			if(errors) {
+				console.log('error from request: ' + errors);
+				if (errors.code == 'ECONNREFUSED')
+					callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
+			} else {
+				if (response.statusCode == 401) {
+					interserverAuth.reAuth(host, url, servAuth, function () {
+						console.log('Sending token now:'+servAuth.token+';');
+						request.post(url, {method: 'POST', uri: url, auth: {bearer: servAuth.token}, json: true, body: {token: token}}, function(errors, response, body){
+							if(errors) {
+								console.log('error from request: ' + errors);
+								if (errors.code == 'ECONNREFUSED')
+									callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
+							} else {
+								console.log('response: ' + body);
+								console.dir(body);
+								callback(null, response.statusCode, body);
+							}
+						});
+					},
+					function () {
+						callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
+					});
+				} else {
+					console.log('response: ' + body);
+					callback(null, response.statusCode, body);
+				}
+			}
+		});
+	},
+	
+	check_token : function (userId, token, callback) {
+		const url = host+'/check_token/'+userId;
+		// json: true,
+		console.log('Sending request to auth serv: GET ' + url);
+		request.post(url, {method: 'POST', uri: url, auth: {bearer: servAuth.token}, json: true, body: {token: token}}, function(errors, response, body){
+			if(errors) {
+				console.log('error from request: ' + errors);
+				if (errors.code == 'ECONNREFUSED')
+					callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
+			} else {
+				if (response.statusCode == 401) {
+					interserverAuth.reAuth(host, url, servAuth, function () {
+						console.log('Sending token now:'+servAuth.token+';');
+						request.post(url, {method: 'POST', uri: url, auth: {bearer: servAuth.token}, json: true, body: {token: token}}, function(errors, response, body){
+							if(errors) {
+								console.log('error from request: ' + errors);
+								if (errors.code == 'ECONNREFUSED')
+									callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
+							} else {
+								console.log('response: ' + body);
+								console.dir(body);
+								callback(null, response.statusCode, body);
+							}
+						});
+					},
+					function () {
+						callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
+					});
+				} else {
+					console.log('response: ' + body);
+					callback(null, response.statusCode, body);
+				}
+			}
+		});
+	},
+	
 	code : function(appId, account, callback){
         const url = host+'/code?client_id='+appId;
 		
@@ -112,41 +184,5 @@ module.exports = {
 				}
 			}
 		});
-    },
-	
-	check : function (userId, token, callback) {
-		const url = host+'/check/'+userId;
-		// json: true,
-		console.log('Sending request to auth serv: GET ' + url);
-		request.post(url, {method: 'POST', uri: url, auth: {bearer: servAuth.token}, json: true, body: {token: token}}, function(errors, response, body){
-			if(errors) {
-				console.log('error from request: ' + errors);
-				if (errors.code == 'ECONNREFUSED')
-					callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
-			} else {
-				if (response.statusCode == 401) {
-					interserverAuth.reAuth(host, url, servAuth, function () {
-						console.log('Sending token now:'+servAuth.token+';');
-						request.post(url, {method: 'POST', uri: url, auth: {bearer: servAuth.token}, json: true, body: {token: token}}, function(errors, response, body){
-							if(errors) {
-								console.log('error from request: ' + errors);
-								if (errors.code == 'ECONNREFUSED')
-									callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
-							} else {
-								console.log('response: ' + body);
-								console.dir(body);
-								callback(null, response.statusCode, body);
-							}
-						});
-					},
-					function () {
-						callback(errors, 500, '{\"error\": \"Service unavailable\"}' );
-					});
-				} else {
-					console.log('response: ' + body);
-					callback(null, response.statusCode, body);
-				}
-			}
-		});
-	}
+    }
 }

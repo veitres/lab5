@@ -120,6 +120,45 @@ router.post('/check/:id', (req, res, next) => {
 	});
 });
 
+router.post('/check_token/:id', (req, res, next) => {
+	console.log('***\n\n' + new Date() + ':\n' + 'Got request for oauth token check for '+req.params.id);
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
+	
+	let userId = req.params.id;
+	if (typeof(userId) == 'undefined') return res.status(400).send({error: "userId not specified", errCode:400});
+	
+	let token = req.body.token;
+	if (typeof(token) == 'undefined') return res.status(400).send({error: "token not specified", errCode:400});
+	
+	console.log('TokBeforeCheck:' + token +'|');
+	db.OAToken.accessToken(token, function (err, dbToken) {
+		if (err) {
+			if (err == 'SequelizeEmptyResultError') {
+				console.log('tnf');
+				return res.status(200).send({error: "TokenNotFound", errCode:401});
+			} else {
+				console.log("dbErr:"+err);
+				return res.status(500).send({error: "Service unavailable", errCode:500});
+			}
+		} else {
+			if (dbToken.userId != userId) {
+				console.log('tau');
+				return res.status(200).send({error: "Trying affect another user", errCode:403});
+			} else if ((Date.now() - dbToken.created)/1000 > accessTokenTTL) {
+				console.log('til');
+				return res.status(200).send({error: 'accessTokenExpericed', errCode:401});
+			} else {
+				return res.status(200).send({result: 1});
+			}
+		}
+	});
+});
+
 router.post('/code', (req, res, next) => {
 	console.log('***\n\n' + new Date() + ':\n' + 'Got request for code for OAuth');
 	
@@ -208,6 +247,10 @@ router.post('/token', (req, res, next) => {
 		
 		db.OAToken.refreshToken(token, function (oaTokenErr, oaToken) {
 			console.log(oaTokenErr);
+			
+			if (oaTokenErr) {
+				if (oaTokenErr == 'SequelizeEmptyResultError') return res.status(200).send({error: "tokenNotFound", errCode: 401});
+			}
 			
 			if ((Date.now() - oaToken.created)/1000 > refreshTokenTTL) {
 				return res.status(200).send({error: 'TokenExpericed', errCode:401});

@@ -82,8 +82,23 @@ router.get('/users/:id', (req, res, next) => {
 	);
 	if (res.headersSent) return;
 	
-	userReq.getUserById(id, function(err, responseCode, body){
-		res.status(responseCode).send(JSON.parse(body));
+	let authHeader = req.get('authorization');
+	if (typeof (authHeader) == 'undefined') return res.status(401).send({error: "No auth token specified"});
+	if (res.headersSent) return;	
+	
+	let authToken = authHeader.split(' ')[1];
+	console.log('\n-\nAuth token:' + authToken + ';');
+	authReq.check_token(id, authToken, function (err, responseCode, body) {
+		//body = JSON.parse(body);
+		if (err || typeof(body.errCode) != 'undefined') {
+			console.log('AuthFailed');
+			if (!res.headersSent) return res.status(body.errCode).send(body);
+		}
+		
+	
+		userReq.getUserById(id, function(err, responseCode, body){
+			res.status(responseCode).send(JSON.parse(body));
+		});
 	});
 });
 
@@ -111,45 +126,56 @@ router.get('/users/:id/appointments', (req, res, next) => {
 	);
 	if (res.headersSent) return;
 	
-	userReq.getUserAppointmentsById(id, page, size, function(err, responseCode, body){
-		if (err || responseCode != 200)
-			res.status(responseCode).send(JSON.parse(body));
-		else {
-			let result = JSON.parse(body);
-			let counter = 0;
-			
-			// sending result if forEach never started
-			if (result.rows.length == 0) {
-				console.log('No need to send any reqs');
-				res.status(200).send(result);
-			}
-			
-			//rendering appointments ids to full info
-			result.rows.forEach(function (item, index) {
-				appointmentReq.getAppointmentById(item.id, function (errors, responseCode, body) {
-					if (errors || responseCode != 200) {
-						// sending result if appointments server not answered
-						console.log('fixing appointment connect error. Counter: ' + (counter+1));
-						if (++counter == result.rows.length) res.status(200).send(result);
-					} else {
-						result.rows[index] = JSON.parse(body);
-						
-						//transforming docId into full doc info
-						docReq.getDocById(result.rows[index].docId, function (error, responseCode, body) {
-							if(error || responseCode != 200) {
-								console.log('Cannot reach doc serv');
-							} else {
-								result.rows[index].doc = JSON.parse(body); // adding new doc field into result by body of request
-								delete result.rows[index].docId;		   // removing used docId form result
-							}
-					
-							// sending result if all necessary requests were send to appointment serv
-							if (++counter == result.rows.length) res.status(200).send(result);
-						});
-					}
-				});
-			});
+	
+	let authToken = authHeader.split(' ')[1];
+	console.log('\n-\nAuth token:' + authToken + ';');
+	authReq.check_token(id, authToken, function (err, responseCode, body) {
+		//body = JSON.parse(body);
+		if (err || typeof(body.errCode) != 'undefined') {
+			console.log('AuthFailed');
+			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
+		
+		userReq.getUserAppointmentsById(id, page, size, function(err, responseCode, body){
+			if (err || responseCode != 200)
+				res.status(responseCode).send(JSON.parse(body));
+			else {
+				let result = JSON.parse(body);
+				let counter = 0;
+				
+				// sending result if forEach never started
+				if (result.rows.length == 0) {
+					console.log('No need to send any reqs');
+					res.status(200).send(result);
+				}
+				
+				//rendering appointments ids to full info
+				result.rows.forEach(function (item, index) {
+					appointmentReq.getAppointmentById(item.id, function (errors, responseCode, body) {
+						if (errors || responseCode != 200) {
+							// sending result if appointments server not answered
+							console.log('fixing appointment connect error. Counter: ' + (counter+1));
+							if (++counter == result.rows.length) res.status(200).send(result);
+						} else {
+							result.rows[index] = JSON.parse(body);
+							
+							//transforming docId into full doc info
+							docReq.getDocById(result.rows[index].docId, function (error, responseCode, body) {
+								if(error || responseCode != 200) {
+									console.log('Cannot reach doc serv');
+								} else {
+									result.rows[index].doc = JSON.parse(body); // adding new doc field into result by body of request
+									delete result.rows[index].docId;		   // removing used docId form result
+								}
+						
+								// sending result if all necessary requests were send to appointment serv
+								if (++counter == result.rows.length) res.status(200).send(result);
+							});
+						}
+					});
+				});
+			}
+		});
 	});
 });
 
@@ -170,23 +196,33 @@ router.patch('/users/:id/appointments', (req, res, next) => {
 	);
 	if (res.headersSent) return;
 	
-		
-	appointmentReq.setAppointmentLocked(appointmentId, function(err, responseCode, body){
-		if (err || responseCode != 200) 
-			res.status(responseCode).send(JSON.parse(body));
-		else {
-			console.log('asking User serv to add appointment' + appointmentId + ' for user ' + id);
-			
-			userReq.addUserAppointment(id, appointmentId, function(err, responseCode, body){
-				if (err || responseCode != 200) {
-					console.log('Got ' + responseCode + ' from User server, so asking Appointment serv to revert appointment' + appointmentId);
-					appointmentReq.setAppointmentUnLocked(appointmentId, function(err, responseCode, body){});
-					res.status(responseCode).send(JSON.parse(body));
-				} else {
-					res.status(200).send(JSON.parse(body));
-				}
-			});
+	let authToken = authHeader.split(' ')[1];
+	console.log('\n-\nAuth token:' + authToken + ';');
+	authReq.check_token(id, authToken, function (err, responseCode, body) {
+		//body = JSON.parse(body);
+		if (err || typeof(body.errCode) != 'undefined') {
+			console.log('AuthFailed');
+			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
+		
+		appointmentReq.setAppointmentLocked(appointmentId, function(err, responseCode, body){
+			if (err || responseCode != 200) 
+				res.status(responseCode).send(JSON.parse(body));
+			else {
+				console.log('asking User serv to add appointment' + appointmentId + ' for user ' + id);
+				
+				userReq.addUserAppointment(id, appointmentId, function(err, responseCode, body){
+					if (err || responseCode != 200) {
+						console.log('Got ' + responseCode + ' from User server, so asking Appointment serv to revert appointment' + appointmentId);
+						appointmentReq.setAppointmentUnLocked(appointmentId, function(err, responseCode, body){});
+						res.status(responseCode).send(JSON.parse(body));
+					} else {
+						res.status(200).send(JSON.parse(body));
+					}
+				});
+			}
+		});
+	
 	});
 });
 
@@ -209,19 +245,29 @@ router.delete('/users/:id/appointments', (req, res, next) => {
 	if (res.headersSent) return;
 	
 	
-	userReq.deleteUserAppointment(id, appointmentId, function(err, responseCode, body){
-		if (err || responseCode != 200) 
-			res.status(responseCode).send(JSON.parse(body));
-		else {
-			appointmentReq.setAppointmentUnLocked(appointmentId, function(err, responseCode, body){
-				if (err || responseCode != 200) {
-					addAppointmentIdToQueue(appointmentId);
-					res.status(202).send({result: 1});
-				} else {
-					res.status(200).send(JSON.parse(body));
-				}
-			});
+	let authToken = authHeader.split(' ')[1];
+	console.log('\n-\nAuth token:' + authToken + ';');
+	authReq.check_token(id, authToken, function (err, responseCode, body) {
+		//body = JSON.parse(body);
+		if (err || typeof(body.errCode) != 'undefined') {
+			console.log('AuthFailed');
+			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
+	
+		userReq.deleteUserAppointment(id, appointmentId, function(err, responseCode, body){
+			if (err || responseCode != 200) 
+				res.status(responseCode).send(JSON.parse(body));
+			else {
+				appointmentReq.setAppointmentUnLocked(appointmentId, function(err, responseCode, body){
+					if (err || responseCode != 200) {
+						addAppointmentIdToQueue(appointmentId);
+						res.status(202).send({result: 1});
+					} else {
+						res.status(200).send(JSON.parse(body));
+					}
+				});
+			}
+		});
 	});
 });
 

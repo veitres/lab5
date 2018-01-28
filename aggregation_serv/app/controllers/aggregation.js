@@ -90,19 +90,11 @@ router.get('/users/:id', (req, res, next) => {
 	console.log('\n-\nAuth token:' + authToken + ';');
 	authReq.check(id, authToken, function (err, responseCode, body) {
 		console.dir(body);
-		//body = JSON.parse(body);
 		if (err || typeof(body.errCode) != 'undefined') {
 			console.log('AuthFailed');
 			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
 		
-		
-		
-		if (res.headersSent) return;
-		console.log('AuthSuccsess');
-		
-		
-		if (res.headersSent) return;
 		userReq.getUserById(id, function(err, responseCode, body){
 			if (!res.headersSent) return res.status(responseCode).send(JSON.parse(body));
 		});
@@ -148,13 +140,6 @@ router.get('/users/:id/appointments', (req, res, next) => {
 			console.log('AuthFailed');
 			if (!res.headersSent) return res.status(body.errCode).send(body);
 		}
-		
-		
-		
-		if (res.headersSent) return;
-		console.log('AuthSuccsess');
-		
-		
 		
 		userReq.getUserAppointmentsById(id, page, size, function(err, responseCode, body){
 			if (err || responseCode != 200)
