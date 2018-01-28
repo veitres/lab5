@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const hashSecret = '21477 61225 37 7836 29 2364? 32 575 784 9383.';
 
 module.exports = (sequelize, DataTypes) => {
 

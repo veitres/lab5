@@ -5,6 +5,7 @@ const request = require('request');
 const userReq = require('../requests/user_api');
 const docReq = require('../requests/doc_api');
 const appointmentReq = require('../requests/appointment_api');
+const authReq = require('../requests/auth_api');
 
 const valid = require('../valid');
 
@@ -326,4 +327,29 @@ router.get('/doctors/:id', (req, res, next) => {
 	docReq.getDocById(id, function (err, responseCode, body) {
 		res.status(responseCode).send(JSON.parse(body));
 	});
+});
+
+router.get('/code', (req, res, next) => {
+	var path = require('path');
+	var file = path.resolve('public/oauth.html');
+	console.log(file);
+	res.status(200).sendFile(file);
+});
+
+router.post('/code', (req, res, next) => {
+	console.log('***\n\n' + new Date() + ':\n' + 'Got request for authenticate');
+	
+	let login = req.body.login;
+	if (typeof(login) == 'undefined') return res.status(400).send({error: "Login not specified"});
+	
+	let password = req.body.password;
+	if (typeof(password) == 'undefined') return res.status(400).send({error: "Password not specified"});
+	
+	authReq.authenticate(req.body, function (err, responseCode, body) {
+		res.status(responseCode).send(body);
+	});
+});
+
+router.get('/token', (req, res, next) => {
+	
 });

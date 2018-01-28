@@ -431,8 +431,6 @@ router.post('/authenticate', (req, res, next) => {
 	let password = req.body.password;
 	if (typeof(password) == 'undefined') return res.status(400).send({error: "Password not specified"});
 	
-	console.log(typeof (req.body));
-	console.dir(req.body);
 	authReq.authenticate(req.body, function (err, responseCode, body) {
 		res.status(responseCode).send(body);
 	});

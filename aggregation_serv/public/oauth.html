@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Title of the document</title>
+<style type="text/css">
+	/* LOGIN */
+	.block {
+		width: 400px;
+		height: 230px;
+		background: #f5f5f5;
+		text-align: center;
+		margin: auto;
+	}
+
+	.block__header {
+		padding: 5px;
+		font-size: 18px;
+		background: #009688;
+		color: #fff;
+	}
+
+	.login__input {
+		width: 343px;
+		height: 40px;
+		padding: 5px;
+		margin: 10px 0;
+		font-size: 20px;
+		border: 1px solid #fff;
+	}
+
+	.btn {
+		display: inline-block;
+		padding: 6px 12px;
+		margin-bottom: 0;
+		font-size: 14px;
+		font-weight: 400;
+		line-height: 1.42857143;
+		text-align: center;
+		white-space: nowrap;
+		vertical-align: middle;
+		-ms-touch-action: manipulation;
+		touch-action: manipulation;
+		cursor: pointer;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+		background-image: none;
+		border: 1px solid transparent;
+		border-radius: 4px;
+	}
+
+	.btn:hover {
+		background: #fff;
+		color: #009688;
+	}
+
+</style>
+</head>
+
+<body>
+	<div class="block block_login">
+        <div class="block__header">
+			Авторизовать приложение
+		</div>
+        <div class="block__content">
+		 <form action="/api/code" method="POST">
+			<input name="login" class="login__input" type="text">
+			<input name="password" class="login__input" type="text">
+			<input class="btn" type="submit" value="Отправить" onclick="oauth();">
+		</form>
+		</div>
+	</div>
+	
+	<script>
+		let forma = document.getElementsByTagName('form')[0];
+		let params = window.location.href.split('?')[1];
+		forma.action = '/api/code?'+params;
+	</script>
+</body>
+</html>
