@@ -8,10 +8,13 @@ const interserverAuth = require('./../interserver');
 
 var aggregationServAuth = {appId: "aggr", appSecret: "aggrKey", token: null, tokenDate: null};
 
-const tokenLiveTime = 86400; // 24 hours
-const inactiveTokenLiveTime = 60; // 30 min
+const tokenLiveTime = 86400; // время жизни общее токена интерфейса 24 часа
+const inactiveTokenLiveTime = 60; // время жизни неиспользуемого токена интерфейса 60сек
 
 const codeTTL = 60; // Время жизни кода 60 сек
+
+const accessTokenTTL = 60; // Время жизни accessToken 60 сек
+const refreshTokenTTL = 86400; // Время жизни accessToken 24 часа
 
 module.exports = (app) => {
   app.use('/', router);
@@ -192,7 +195,7 @@ router.post('/token', (req, res, next) => {
 				db.OAToken.createToken(code.userId, code.appId, function (oaTokenErr, oaToken) {
 					console.log(oaTokenErr);
 					
-					return res.status(200).send({access_token: oaToken.accessToken, refresh_token: oaToken.refreshToken});
+					return res.status(200).send({access_token: oaToken.accessToken, token_type: "bearer", refresh_token: oaToken.refreshToken});
 				});
 			});
 		}); 
@@ -201,7 +204,21 @@ router.post('/token', (req, res, next) => {
 			
 	} else if (grant_type == 'token') {
 		let token = req.body.token;
-		if (typeof(code) == 'undefined') return res.status(400).send({error: "token not specified"});
+		if (typeof(token) == 'undefined') return res.status(400).send({error: "token not specified"});
+		
+		db.OAToken.refreshToken(token, function (oaTokenErr, oaToken) {
+			console.log(oaTokenErr);
+			
+			if ((Date.now() - oaToken.created)/1000 > refreshTokenTTL) {
+				return res.status(200).send({error: 'TokenExpericed', errCode:401});
+			} else
+			{
+				db.OAToken.byRefreshToken(token, function (newOaTokenErr, newOaToken) {
+					console.log(newOaTokenErr);
+					return res.status(200).send({access_token: newOaToken.accessToken, token_type: "bearer", refresh_token: newOaToken.refreshToken});
+				});
+			}
+		});
 		
 	} else {
 		return res.status(400).send({error: "bad grant_type"});

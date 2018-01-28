@@ -24,6 +24,19 @@ module.exports = (sequelize, DataTypes) => {
 		});
 	}
 	
+	OAToken.refreshToken = function (token, callback) {
+		this.findOne(
+		{
+			where: { refreshToken: token },
+			rejectOnEmpty: true
+		}
+		).then((token) => {
+			callback(null, token);
+		}).catch(function (err) {
+			callback(err, null);
+		});
+	}
+	
 	OAToken.createToken = function (userId, appId, callback) {
 		this.create({
 			accessToken: crypto.randomBytes(32).toString('base64'),
@@ -38,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
 		});
 	}
 	
-	OAToken.refreshToken = function (token, callback) {
+	OAToken.byRefreshToken = function (token, callback) {
 		this.findOne(
 		{
 			where: { refreshToken: token },
@@ -55,8 +68,8 @@ module.exports = (sequelize, DataTypes) => {
 				userId: uId,
 				appId: aId,
 				created: Date.now()
-			}).then((token) => {
-				callback(null, token);
+			}).then((newToken) => {
+				callback(null, newToken);
 			});
 		}).catch(function (err) {
 			callback(err, null);
