@@ -81,9 +81,7 @@ router.get('/users/:id', (req, res, next) => {
 		function () {return res.status(400).send({error: "User ID is incorrect"});}
 	);
 	if (res.headersSent) return;
-	
-	
-	
+		
 	let authHeader = req.get('authorization');
 	if (typeof (authHeader) == 'undefined') return res.status(401).send({error: "No auth token specified"});
 	if (res.headersSent) return;	

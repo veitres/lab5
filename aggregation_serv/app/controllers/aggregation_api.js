@@ -337,7 +337,7 @@ router.get('/code', (req, res, next) => {
 });
 
 router.post('/code', (req, res, next) => {
-	console.log('***\n\n' + new Date() + ':\n' + 'Got request for authenticate');
+	console.log('***\n\n' + new Date() + ':\n' + 'Got request for code');
 	
 	let login = req.body.login;
 	if (typeof(login) == 'undefined') return res.status(400).send({error: "Login not specified"});
@@ -345,11 +345,23 @@ router.post('/code', (req, res, next) => {
 	let password = req.body.password;
 	if (typeof(password) == 'undefined') return res.status(400).send({error: "Password not specified"});
 	
-	authReq.authenticate(req.body, function (err, responseCode, body) {
-		res.status(responseCode).send(body);
+	let redirect = req.query.redirect_uri;
+	console.log('Redir: ' + redirect);
+	
+	let appId = req.query.client_id;
+	
+	authReq.code(appId, req.body, function (err, responseCode, body) {
+		res.redirect(redirect+'?code='+body.code);
 	});
 });
 
-router.get('/token', (req, res, next) => {
+router.post('/token', (req, res, next) => {
+	let redirect = req.query.redirect_uri;
+	let appId = req.query.client_id;
+	let appSecret = req.query.client_secret;
 	
+	authReq.token(appId, appSecret, req.body, function (err, responseCode, body) {
+		//res.status(200).send(JSON.parse(body));
+		res.status(200).send(body);
+	});
 });

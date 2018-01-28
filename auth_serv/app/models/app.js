@@ -7,6 +7,19 @@ module.exports = (sequelize, DataTypes) => {
 		appSecret: DataTypes.STRING
 	});
 	
+	App.findApp = function (appId, callback) {
+		this.findOne(
+		{
+			where: { appId: appId },
+			rejectOnEmpty: true
+		}
+		).then((app) => {
+			callback(null, app);
+		}).catch(function (err) {
+			callback(err, null);
+		});
+	}
+	
 	return App;
 };
 

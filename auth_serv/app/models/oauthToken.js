@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
 			accessToken: crypto.randomBytes(32).toString('base64'),
 			refreshToken: crypto.randomBytes(32).toString('base64'),
 			userId: userId,
+			appId: appId,
 			created: Date.now()
 		}).then((token) => {
 			callback(null, token);

@@ -11,6 +11,7 @@ var aggregationServAuth = {appId: "aggr", appSecret: "aggrKey", token: null, tok
 const tokenLiveTime = 86400; // 24 hours
 const inactiveTokenLiveTime = 60; // 30 min
 
+const codeTTL = 60; // Время жизни кода 60 сек
 
 module.exports = (app) => {
   app.use('/', router);
@@ -114,4 +115,95 @@ router.post('/check/:id', (req, res, next) => {
 			}
 		}
 	});
+});
+
+router.post('/code', (req, res, next) => {
+	console.log('***\n\n' + new Date() + ':\n' + 'Got request for code for OAuth');
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
+	
+	let login = req.body.login;
+	console.log('login:'+login+';');
+	if (typeof(login) == 'undefined') return res.status(400).send({error: "Login not specified"});
+	
+	let password = req.body.password;
+	console.log('pass:'+password+';');
+	if (typeof(password) == 'undefined') return res.status(400).send({error: "Password not specified"});
+	
+	let appId = req.query.client_id;
+	console.log('app='+appId);
+	db.Account.findAccountAndCheckPassword(login, password, function (accountErr, account) {
+		if (accountErr) {
+			if (accountErr == 'SequelizeEmptyResultError') {
+				return res.status(200).send({error: "User with such login not found", errCode:404});
+			} else if (accountErr == 'Incorrect password') {
+				return res.status(200).send({error: "Wrong password", errCode:401});
+			} else {
+				return res.status(500).send({error: "Service unavailable", errCode:500});
+			}
+		} else {
+			db.App.findApp(appId, function (appErr, app) {
+				console.log(appErr);
+				db.Code.createCode(account.id, app.id, function (codeErr, code) {
+					return res.status(200).send({code: code.code});
+				});
+			});
+		}
+	});
+});
+
+
+router.post('/token', (req, res, next) => {
+	console.log('***\n\n' + new Date() + ':\n' + 'Got request for code for OAuth');
+	
+	let authHeader = req.get('authorization');
+	let checkErr = interserverAuth.authCheck(authHeader, aggregationServAuth);
+	if (checkErr) {
+		return res.status(401).send({error: checkErr});
+	}
+	
+	let appId = req.query.client_id;
+	let appSecret = req.query.client_secret;
+	
+	let grant_type = req.body.grant_type;
+	if (typeof(grant_type) == 'undefined') return res.status(400).send({error: "grant_type not specified"});
+	
+	if (grant_type == 'code') {
+		let code = req.body.code;
+		if (typeof(code) == 'undefined') return res.status(400).send({error: "Code not specified"});
+		
+		db.App.findApp(appId, function (appErr, app) {
+			console.log(appErr);
+			
+			if (app.appSecret != appSecret)  return res.status(401).send({error: "WrongAppSecret", errCode:401});
+			
+			db.Code.findCode(code, function (codeErr, code) {
+				console.log(codeErr);
+				if (app.id != code.appId)  return res.status(401).send({error: "codeNotForThatApp", errCode:403});
+				
+				if ((Date.now() - code.created)/1000 > codeTTL) {
+					return res.status(200).send({error: 'codeExpericed', errCode:401});
+				}
+				
+				db.OAToken.createToken(code.userId, code.appId, function (oaTokenErr, oaToken) {
+					console.log(oaTokenErr);
+					
+					return res.status(200).send({access_token: oaToken.accessToken, refresh_token: oaToken.refreshToken});
+				});
+			});
+		}); 
+		
+		
+			
+	} else if (grant_type == 'token') {
+		let token = req.body.token;
+		if (typeof(code) == 'undefined') return res.status(400).send({error: "token not specified"});
+		
+	} else {
+		return res.status(400).send({error: "bad grant_type"});
+	}
 });
