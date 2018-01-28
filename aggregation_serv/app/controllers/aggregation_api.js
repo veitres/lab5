@@ -397,7 +397,11 @@ router.post('/code', (req, res, next) => {
 	let appId = req.query.client_id;
 	
 	authReq.code(appId, req.body, function (err, responseCode, body) {
-		res.redirect(redirect+'?code='+body.code);
+		if (typeof body.error != 'undefined') {
+			res.redirect(redirect+'?error='+body.error);
+		} else {
+			res.redirect(redirect+'?code='+body.code);
+		}
 	});
 });
 
@@ -407,7 +411,10 @@ router.post('/token', (req, res, next) => {
 	let appSecret = req.query.client_secret;
 	
 	authReq.token(appId, appSecret, req.body, function (err, responseCode, body) {
-		//res.status(200).send(JSON.parse(body));
-		res.status(200).send(body);
+		if (typeof body.error != 'undefined') {
+			res.redirect(redirect+'?error='+body.error);
+		} else {
+			res.status(200).send(body);
+		}
 	});
 });
